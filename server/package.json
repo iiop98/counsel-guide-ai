@@ -1,0 +1,19 @@
+{
+  "name": "counsel-guide-ai-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "상담 길잡이 AI 시연용 서버: 복지서비스 공공데이터 API 프록시 + LLM 사건 분석",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.60.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "fast-xml-parser": "^4.4.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

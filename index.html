@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>상담 길잡이 AI · 시연</title>
+<style>
+:root{
+  --bg:#f5f7fa; --surface:#ffffff; --ink:#1b2430; --muted:#5d6b7c; --line:#dfe5ec;
+  --brand:#1f5fbf; --brand-ink:#ffffff; --brand-soft:#e6efff;
+  --p1:#c2410c; --p1-soft:#ffedd5; --p2:#1f5fbf; --p2-soft:#e6efff; --p3:#4b6b3c; --p3-soft:#e8f2e1;
+  --warn:#8a5a00; --warn-soft:#fff4d6; --ok:#1d6b45; --ok-soft:#dff3e8;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f141b; --surface:#171e28; --ink:#e8edf3; --muted:#9aa8b8; --line:#2a3544;
+    --brand:#6ea3ff; --brand-ink:#0b1220; --brand-soft:#1c2a42;
+    --p1:#ffa66b; --p1-soft:#3a2314; --p2:#8db6ff; --p2-soft:#1c2a42; --p3:#a5cf8f; --p3-soft:#1f2e19;
+    --warn:#f0c36a; --warn-soft:#352a10; --ok:#7ed3a4; --ok-soft:#14301f;
+  }
+}
+*{box-sizing:border-box}
+html{font-size:17px}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;line-height:1.55}
+.wrap{max-width:1120px;margin:0 auto;padding:20px 20px 60px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:18px}
+.top h1{font-size:1.5rem;margin:0;letter-spacing:-.02em}
+.tag{font-size:.78rem;padding:3px 10px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-weight:600}
+.sub{color:var(--muted);margin:2px 0 0;font-size:.95rem;width:100%}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+.card h2{font-size:1.05rem;margin:0 0 10px;letter-spacing:-.01em}
+.card h2 small{font-weight:400;color:var(--muted);margin-left:8px;font-size:.8rem}
+textarea{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;resize:vertical;min-height:110px}
+textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:12px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px}
+button.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:700;padding:10px 22px}
+button.primary:disabled{opacity:.6;cursor:progress}
+button.chip{border-radius:999px;padding:5px 12px;font-size:.88rem;background:var(--brand-soft);border-color:transparent;color:var(--brand)}
+select{font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+label.mode{color:var(--muted);font-size:.9rem;display:flex;gap:8px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.flow{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:16px 0 0;padding:0;counter-reset:s}
+.flow li{counter-increment:s;flex:1 1 180px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.88rem;color:var(--muted);transition:.2s}
+.flow li::before{content:counter(s);display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--line);color:var(--ink);font-size:.75rem;margin-right:8px}
+.flow li b{display:block;color:var(--ink);font-size:.92rem}
+.flow li.on{border-color:var(--brand);background:var(--brand-soft);color:var(--ink)}
+.flow li.on::before{background:var(--brand);color:var(--brand-ink)}
+.flow li.done::before{content:"✓";background:var(--ok);color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;font-size:.88rem;font-weight:600;background:var(--brand-soft);color:var(--brand);margin:0 6px 6px 0}
+.pill.fact{background:var(--bg);color:var(--ink);font-weight:500;border:1px solid var(--line)}
+.pill small{font-weight:400;opacity:.8}
+.q{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0}
+.q input{margin-top:5px;width:18px;height:18px;flex:none}
+.q b{display:block;font-weight:600}
+.q span{color:var(--muted);font-size:.86rem}
+.svc{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.svc .hd{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:6px}
+.svc h3{margin:0;font-size:1rem}
+.badge{font-size:.72rem;padding:2px 8px;border-radius:6px;font-weight:700}
+.b-p1{background:var(--p1-soft);color:var(--p1)} .b-p2{background:var(--p2-soft);color:var(--p2)} .b-p3{background:var(--p3-soft);color:var(--p3)}
+.b-src{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.b-ok{background:var(--ok-soft);color:var(--ok)} .b-warn{background:var(--warn-soft);color:var(--warn)}
+dl{margin:6px 0 0;display:grid;grid-template-columns:76px 1fr;gap:3px 10px;font-size:.9rem}
+dt{color:var(--muted)} dd{margin:0}
+.ev{margin:0 4px 0 0;font-size:.78rem;color:var(--brand)}
+.tl{position:relative;margin:4px 0 0;padding-left:22px}
+.tl::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.ph{position:relative;margin-bottom:16px}
+.ph::before{content:"";position:absolute;left:-22px;top:5px;width:16px;height:16px;border-radius:50%;border:3px solid var(--surface)}
+.ph.p1::before{background:var(--p1)} .ph.p2::before{background:var(--p2)} .ph.p3::before{background:var(--p3)}
+.ph h3{margin:0 0 4px;font-size:.98rem}
+.ph ul{margin:0;padding-left:18px;font-size:.92rem}
+.ph li{margin:2px 0}
+.ph li small{color:var(--muted)}
+.docs{background:var(--bg);border:1px dashed var(--line);border-radius:10px;padding:10px 14px;font-size:.9rem;margin-top:4px}
+.letter{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:.94rem;margin:0}
+.note{font-size:.84rem;color:var(--muted);margin-top:8px}
+.src{font-size:.84rem;color:var(--muted);display:grid;gap:4px;margin:0;padding:0;list-style:none}
+.src li::before{content:"· "}
+.err{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 14px;margin-top:12px;font-size:.92rem}
+.empty{color:var(--muted);font-size:.92rem}
+a{color:var(--brand)}
+@media print{body{background:#fff}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>상담 길잡이 AI</h1>
+    <span class="tag">시연 버전 · 샘플 데이터</span>
+    <p class="sub">상담 내용을 입력하면 생애 사건을 인식하고, 필요한 제도와 근거, 추가 확인 질문, 신청 순서 로드맵을 한 화면에 띄워 줍니다. 최종 자격 판단은 담당 공무원이 합니다.</p>
+  </header>
+
+  <section class="card" aria-labelledby="h-in">
+    <h2 id="h-in">① 상담 내용 입력 <small>예시를 눌러 바로 시연할 수 있어요</small></h2>
+    <div class="chips" id="scn"></div>
+    <textarea id="memo" placeholder="내담자가 말한 내용을 그대로 적어 주세요. 예) 남편이 지난달 권고사직을 당했고, 저는 아이를 낳은 지 3개월 됐어요…"></textarea>
+    <div class="row">
+      <button class="primary" id="go">분석하기</button>
+      <label class="mode">분석 방식
+        <select id="mode">
+          <option value="demo">데모 (규칙 기반 · 샘플 데이터)</option>
+          <option value="server">서버 연결 (LLM + 실제 복지서비스 API)</option>
+        </select>
+      </label>
+    </div>
+    <ol class="flow" id="flow">
+      <li data-s="0"><b>상담 이해</b>사건·가구 정보 추출</li>
+      <li data-s="1"><b>제도 검색</b>복지서비스 데이터 조회</li>
+      <li data-s="2"><b>근거 대조</b>지원대상·선정기준 확인</li>
+      <li data-s="3"><b>로드맵 생성</b>순서·서류·연계 기관</li>
+    </ol>
+    <div id="err" class="err" hidden></div>
+  </section>
+
+  <div id="out" hidden>
+    <div class="grid">
+      <section class="card" aria-labelledby="h-ev">
+        <h2 id="h-ev">② 인식된 사건과 파악된 정보</h2>
+        <div id="events"></div>
+        <div id="facts" style="margin-top:6px"></div>
+      </section>
+      <section class="card" aria-labelledby="h-q">
+        <h2 id="h-q">③ 지금 확인하면 좋은 질문 <small>빠진 정보를 AI가 찾아 줍니다</small></h2>
+        <div id="qs"></div>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="h-rm">
+      <h2 id="h-rm">④ 사건 기반 로드맵 <small>무엇을 어떤 순서로 할지</small></h2>
+      <div class="tl" id="roadmap"></div>
+      <div class="docs" id="docs"></div>
+    </section>
+
+    <section class="card" aria-labelledby="h-sv">
+      <h2 id="h-sv">⑤ 추천 제도와 근거 <small>모든 추천에 원문 근거를 붙입니다</small></h2>
+      <div id="svcs"></div>
+      <p class="note">※ 이 안내는 참고용입니다. 자격 여부와 지급액은 담당 공무원이 소득·재산 조사 후 최종 확인합니다. 샘플 데이터의 세부 기준은 시연용 요약이며, 실제 연동 시에는 복지서비스 API 원문으로 대체됩니다.</p>
+    </section>
+
+    <section class="card" aria-labelledby="h-lt">
+      <h2 id="h-lt">⑥ 내담자에게 드릴 쉬운 말 안내문</h2>
+      <pre class="letter" id="letter"></pre>
+      <div class="row"><button id="copy">안내문 복사</button><span id="copied" class="note" role="status"></span></div>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="h-ds">
+    <h2 id="h-ds">사용 데이터 <small>시연 버전은 샘플, 서버 연결 시 아래 실데이터</small></h2>
+    <ul class="src">
+      <li>한국사회보장정보원 중앙부처복지서비스 API — 목록·상세(지원대상, 선정기준, 신청방법)</li>
+      <li>한국사회보장정보원 지자체복지서비스 API — 지역별 복지서비스</li>
+      <li>한국사회보장정보원 민간복지서비스정보 — 생애주기·가구상황·관심주제 분류</li>
+      <li>한국사회보장정보원 복지서비스정보 — 소관·문의처·관련 사이트</li>
+      <li>사회복지시설정보서비스 — 연계 기관 안내</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   1) 엔진: 사건 인식 → 제도 매칭 → 질문·로드맵·안내문 생성
+   (실서비스에서는 사건 인식을 LLM이, 제도 데이터를 복지서비스 API가 대체)
+   ============================================================ */
+const EVENTS = {
+  job_loss:      { label:'실직·퇴사',        kw:['실직','퇴사','해고','권고사직','직장을 잃','일자리를 잃','폐업','잘렸'] },
+  birth:         { label:'출산·영아 양육',    kw:['출산','임신','신생아','낳은','갓난','갓 태어','아기를 낳'] },
+  housing:       { label:'주거 위기',         kw:['체납','밀렸','밀려','퇴거','집세','보증금','쫓겨'] },
+  income_drop:   { label:'생계 곤란',         kw:['생활비','막막','수입이 없','소득이 없','끼니','돈이 없'] },
+  burden:        { label:'생활비·주거비 부담', kw:['빠듯','겨우 버'] },
+  medical:       { label:'입원·퇴원·의료비',  kw:['퇴원','입원','수술','병원비','치료비','의료비'] },
+  elder:         { label:'노인 돌봄',         kw:['어르신','노모','노인','치매','요양','거동','돌봐줄','낙상'] },
+  single_parent: { label:'한부모 양육',       kw:['한부모','이혼','혼자 키','혼자 아이','혼자서 아이','혼자 양육'] },
+  disability:    { label:'장애',              kw:['장애'] }
+};
+
+const QUESTIONS = {
+  income:    { q:'가구의 월 소득과 재산(집·차·예금)은 대략 어느 정도인가요?', why:'대부분 제도의 자격이 소득인정액으로 결정돼요.' },
+  household: { q:'함께 사는 가구원은 몇 명인가요?', why:'가구원 수에 따라 소득 기준이 달라져요.' },
+  insurance: { q:'고용보험 가입 이력과 퇴사 사유(권고사직·계약만료 등)를 확인했나요?', why:'실업급여는 가입 기간과 이직 사유가 핵심이에요.' },
+  housing:   { q:'현재 집은 월세·전세·자가 중 무엇인가요?', why:'주거 지원은 거주 형태에 따라 달라져요.' },
+  childAge:  { q:'아이는 생후 몇 개월인가요?', why:'아이 나이에 따라 받을 수 있는 급여와 신청 기한이 달라요.' },
+  elderAge:  { q:'도움이 필요한 분은 만 65세 이상인가요?', why:'노인 대상 제도의 기본 요건이에요.' },
+  ltc:       { q:'장기요양 등급 판정을 신청했거나 받은 적이 있나요?', why:'요양 서비스는 등급 판정이 있어야 이용할 수 있어요.' },
+  disabled:  { q:'장애 등록(장애 정도 판정) 여부를 확인했나요?', why:'장애인 대상 지원은 등록 여부가 기준이에요.' },
+  discharge: { q:'퇴원 예정일과, 퇴원 후 돌봐줄 사람이 있는지 확인했나요?', why:'퇴원 전에 돌봄 연계를 신청해야 공백이 생기지 않아요.' }
+};
+const QUESTION_ORDER = ['household','income','housing','insurance','childAge','elderAge','ltc','disabled','discharge'];
+
+const PHASES = {
+  1: { title:'바로 (긴급·즉시 상담)',      cls:'p1' },
+  2: { title:'이어서 (서류 준비·신청)',    cls:'p2' },
+  3: { title:'여유가 생기면 (보완 지원)',  cls:'p3' }
+};
+
+/* 샘플 제도 데이터: 복지서비스 API의 항목(서비스명·지원대상·선정기준·지원내용·신청방법·문의처)에 맞춘 시연용 요약.
+   verified:true 인 항목만 복지로 상세 화면에서 확인한 원문 기준이다. */
+const ALL_EVENTS = Object.keys(EVENTS);
+const SERVICES = [
+  { id:'emergency', name:'긴급복지지원', ministry:'보건복지부', source:'중앙부처', events:['job_loss','income_drop','housing','medical'], phase:1,
+    target:'실직·질병·사고 등 갑작스러운 위기로 생계 유지가 어려운 가구',
+    criteria:'위기 사유가 확인되고 소득·재산 기준을 충족해야 함 (세부 기준은 복지로에서 확인)',
+    benefit:'생계·의료·주거 등 긴급 지원', how:'시군구청 또는 읍면동 주민센터 신청',
+    contact:'보건복지상담센터 129', docs:['신분증','위기 사유 확인 자료(해고 통지서·진단서 등)'], need:['income','household'] },
+  { id:'ui', name:'실업급여(구직급여)', ministry:'고용노동부', source:'중앙부처', events:['job_loss'], phase:1,
+    target:'고용보험 가입 이력이 있고 비자발적으로 이직한 구직자',
+    criteria:'피보험 기간과 이직 사유 등 요건을 충족해야 함',
+    benefit:'구직 활동 기간 동안 구직급여 지급', how:'고용24 또는 관할 고용센터에서 수급자격 신청',
+    contact:'고용노동부 고객상담센터 1350', docs:['신분증','이직확인서(회사가 처리)'], need:['insurance'] },
+  { id:'local_housing', name:'지자체 주거 위기 가구 지원 (지역별 상이)', ministry:'관할 지자체', source:'지자체', events:['housing'], phase:1,
+    target:'월세 체납 등 주거 위기에 놓인 가구',
+    criteria:'지역·사업마다 기준이 달라, 지자체복지서비스 API로 해당 지역 사업을 조회',
+    benefit:'지역별로 상이', how:'관할 시군구·주민센터 문의',
+    contact:'관할 읍면동 주민센터', docs:['신분증','임대차계약서','체납 확인 자료'], need:['housing','income'] },
+  { id:'local_discharge', name:'지자체 퇴원 환자 돌봄·방문서비스 연계 (지역별 상이)', ministry:'관할 지자체', source:'지자체', events:['medical','elder'], phase:1,
+    target:'퇴원 후 돌봄 공백이 우려되는 가구',
+    criteria:'지역별 운영 여부와 기준이 다름 — 지자체복지서비스 API로 조회',
+    benefit:'지역별로 상이', how:'퇴원 전 병원 사회사업팀 또는 주민센터와 상담',
+    contact:'관할 읍면동 주민센터', docs:['신분증','퇴원(예정) 확인서'], need:['discharge'] },
+  { id:'ntl_employ', name:'국민취업지원제도', ministry:'고용노동부', source:'중앙부처', events:['job_loss'], phase:2,
+    target:'구직 중인 저소득층·청년 등 취업 지원이 필요한 사람',
+    criteria:'소득·재산, 취업 경험 등에 따라 유형이 나뉨 (세부 기준은 고용24에서 확인)',
+    benefit:'취업 상담·직업훈련 연계, 요건에 따라 구직촉진수당', how:'관할 고용센터 상담·신청',
+    contact:'고용노동부 고객상담센터 1350', docs:['신분증','구직 이력 관련 서류'], need:['income','insurance'] },
+  { id:'housing_benefit', name:'주거급여', ministry:'국토교통부', source:'중앙부처', events:['housing','burden','income_drop','job_loss'], phase:2,
+    target:'소득이 일정 수준 이하이고 임차 또는 자가에 거주하는 가구',
+    criteria:'기준 중위소득 대비 소득인정액 기준 충족 (최신 기준은 복지로에서 확인)',
+    benefit:'임차료 또는 주택 수선 지원', how:'읍면동 주민센터 신청',
+    contact:'관할 읍면동 주민센터', docs:['신분증','임대차계약서'], need:['income','household','housing'] },
+  { id:'basic_livelihood', name:'국민기초생활보장(생계·의료급여)', ministry:'보건복지부', source:'중앙부처', events:['income_drop','burden','job_loss','medical'], phase:2,
+    target:'소득인정액이 기준 중위소득의 일정 비율 이하인 가구',
+    criteria:'급여 종류별로 선정기준이 다름 (소득인정액 기준)',
+    benefit:'생계·의료 등 급여', how:'읍면동 주민센터 신청 후 조사',
+    contact:'보건복지상담센터 129', docs:['신분증','금융정보 제공 동의서'], need:['income','household'] },
+  { id:'parent_allow', name:'부모급여', ministry:'보건복지부', source:'중앙부처', events:['birth'], phase:2,
+    target:'영아(0~1세)를 양육하는 가정',
+    criteria:'아동 연령 기준 (소득 기준 없음, 최신 지급액은 복지로에서 확인)',
+    benefit:'월 단위 현금 지급', how:'주민센터 또는 복지로 온라인 신청',
+    contact:'보건복지상담센터 129', docs:['신분증','통장 사본'], need:['childAge'] },
+  { id:'child_allow', name:'아동수당', ministry:'보건복지부', source:'중앙부처', events:['birth'], phase:2,
+    target:'일정 연령 미만의 아동을 양육하는 가정',
+    criteria:'아동 연령 기준 (소득 기준 없음)',
+    benefit:'월 단위 현금 지급', how:'주민센터 또는 복지로 온라인 신청',
+    contact:'보건복지상담센터 129', docs:['신분증','통장 사본'], need:['childAge'] },
+  { id:'first_meet', name:'첫만남이용권', ministry:'보건복지부', source:'중앙부처', events:['birth'], phase:2,
+    target:'출생신고된 아동의 양육자',
+    criteria:'출생 아동 기준 (신청 기한이 있으니 복지로에서 확인)',
+    benefit:'바우처 지급', how:'주민센터 또는 복지로 온라인 신청',
+    contact:'보건복지상담센터 129', docs:['신분증'], need:['childAge'] },
+  { id:'postnatal', name:'산모·신생아 건강관리 지원', ministry:'관할 지자체·보건소', source:'지자체', events:['birth'], phase:2,
+    target:'출산 가정 (소득 기준 등은 지역·사업별로 상이)',
+    criteria:'지자체복지서비스 API로 해당 지역 사업과 기준을 조회',
+    benefit:'건강관리사 방문 지원 등', how:'관할 보건소 또는 복지로',
+    contact:'관할 보건소', docs:['신분증','출산 확인 서류'], need:['income','household'] },
+  { id:'elder_care', name:'노인맞춤돌봄서비스', ministry:'보건복지부', source:'중앙부처', events:['elder'], phase:2,
+    target:'돌봄이 필요한 만 65세 이상 취약 어르신',
+    criteria:'소득·서비스 필요도 등 기준 (세부는 복지로에서 확인)',
+    benefit:'안전 확인, 생활 지원, 사회 참여 지원', how:'읍면동 주민센터',
+    contact:'관할 읍면동 주민센터', docs:['신분증'], need:['elderAge','income'] },
+  { id:'ltc', name:'노인장기요양보험', ministry:'국민건강보험공단', source:'중앙부처', events:['elder','medical','disability'], phase:2,
+    target:'만 65세 이상 또는 노인성 질병이 있어 장기요양 인정을 받은 사람',
+    criteria:'장기요양 등급 판정이 필요함',
+    benefit:'방문요양, 시설급여 등', how:'국민건강보험공단에 장기요양 인정 신청',
+    contact:'국민건강보험공단 1577-1000', docs:['신분증','의사소견서(필요 시)'], need:['elderAge','ltc'] },
+  { id:'basic_pension', name:'기초연금', ministry:'보건복지부', source:'중앙부처', events:['elder'], phase:2, verified:true,
+    url:'https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00001164',
+    target:'만 65세 이상이며 가구 소득인정액이 선정기준액 이하인 사람',
+    criteria:'2026년 선정기준액 단독가구 2,470,000원 · 부부가구 3,952,000원 (소득인정액 = 소득평가액 + 재산의 소득환산액)',
+    benefit:'월 단위 현금 지급', how:'복지로 상세 화면의 신청방법 참고',
+    contact:'문의 1355', docs:['신분증','통장 사본'], need:['elderAge','income'] },
+  { id:'catastrophic_med', name:'재난적의료비 지원', ministry:'국민건강보험공단', source:'중앙부처', events:['medical'], phase:2,
+    target:'과도한 의료비 부담으로 가계가 어려운 가구',
+    criteria:'소득 수준과 의료비 부담 비율 등 기준 (복지로에서 확인)',
+    benefit:'본인부담 의료비 일부 지원', how:'병원 사회사업팀 또는 건강보험공단 지사 상담',
+    contact:'국민건강보험공단 1577-1000', docs:['신분증','진료비 영수증'], need:['income','household'] },
+  { id:'single_parent', name:'한부모가족 지원(아동양육비 등)', ministry:'여성가족부', source:'중앙부처', events:['single_parent'], phase:2,
+    target:'미성년 아동을 양육하는 한부모 가구',
+    criteria:'소득이 기준 중위소득의 일정 비율 이하 (세부 기준은 복지로에서 확인)',
+    benefit:'아동양육비·교육비 등', how:'읍면동 주민센터 신청',
+    contact:'관할 읍면동 주민센터', docs:['신분증','가족관계 확인 서류'], need:['income','household'] },
+  { id:'disability_support', name:'장애인 활동지원', ministry:'보건복지부', source:'중앙부처', events:['disability'], phase:2,
+    target:'활동 지원이 필요한 등록 장애인',
+    criteria:'장애 정도와 활동지원 인정조사 결과',
+    benefit:'활동 보조 등 서비스 이용권', how:'주민센터 신청 후 인정조사',
+    contact:'관할 읍면동 주민센터', docs:['신분증','장애인 등록 확인 서류'], need:['disabled'] },
+  { id:'private', name:'민간 복지서비스 연계 (후원·지원 사업)', ministry:'각 민간기관', source:'민간', events:ALL_EVENTS, phase:3,
+    target:'기관·사업별로 상이 (생애주기·가구상황 항목으로 분류됨)',
+    criteria:'민간복지서비스정보의 지원대상 항목으로 확인',
+    benefit:'기관별로 상이', how:'각 기관별 신청방법 확인',
+    contact:'해당 기관', docs:[], need:[] }
+];
+
+const SCENARIOS = [
+  { label:'실직 + 출산 + 월세 체납', text:'남편이 지난달 회사에서 권고사직을 당했습니다. 저는 아이를 낳은 지 3개월 됐고 월세가 두 달 밀렸어요. 가족은 셋이고 당장 생활비가 막막합니다.' },
+  { label:'어르신 퇴원 후 돌봄', text:'어머니가 79세인데 낙상으로 입원했다가 다음 주 퇴원 예정입니다. 혼자 거동이 어렵고 돌봐줄 사람이 없습니다. 병원비도 부담돼요.' },
+  { label:'한부모 가정', text:'이혼하고 초등학생 아이 둘을 혼자 키우고 있어요. 아르바이트로 겨우 버티는데 월세 내기도 빠듯합니다.' }
+];
+
+const KO_NUM = { '둘':2, '셋':3, '넷':4, '다섯':5 };
+
+function extractFacts(t) {
+  const f = {};
+  let m = t.match(/(\d{2,3})\s*(?:세|살)/);
+  if (m) f.age = +m[1];
+  m = t.match(/(?:가족|가구)[은는이]?\s*(\d|둘|셋|넷|다섯)\s*(?:명|인|이)?/) || t.match(/(\d)\s*인\s*(?:가구|가족)/);
+  if (m) f.household = KO_NUM[m[1]] || +m[1];
+  else if (/혼자\s*(?:살|산)/.test(t)) f.household = 1;
+  m = t.match(/(\d{1,2})\s*개월/);
+  if (m) f.childMonths = +m[1];
+  m = t.match(/(월세|전세|자가)/);
+  if (m) f.housingType = m[1];
+  if (/월\s*\d+\s*만\s*원|월급\s*\d|소득\s*\d|수입\s*\d/.test(t)) f.incomeMentioned = true;
+  return f;
+}
+
+function detectEvents(t, facts) {
+  const found = [];
+  for (const [id, def] of Object.entries(EVENTS)) {
+    const hits = def.kw.filter(k => t.includes(k));
+    if (hits.length) found.push({ id, hits });
+  }
+  const has = id => found.some(e => e.id === id);
+  if (facts.age >= 65 && !has('elder')) found.push({ id:'elder', hits:['만 ' + facts.age + '세'] });
+  if (facts.childMonths != null && /아이|아기|출산|낳|신생아/.test(t) && !has('birth')) found.push({ id:'birth', hits:[facts.childMonths + '개월'] });
+  return found;
+}
+
+function answeredKeys(facts) {
+  const a = new Set();
+  if (facts.incomeMentioned) a.add('income');
+  if (facts.household != null) a.add('household');
+  if (facts.housingType) a.add('housing');
+  if (facts.childMonths != null) a.add('childAge');
+  if (facts.age >= 65) a.add('elderAge');
+  return a;
+}
+
+function matchServices(eventIds, services) {
+  const set = new Set(eventIds);
+  return services
+    .map(s => ({ s, matched: s.events.filter(e => set.has(e)) }))
+    .filter(x => x.matched.length)
+    .sort((a, b) => a.s.phase - b.s.phase || (b.matched.length - a.matched.length))
+    .map(x => ({ ...x.s, matchedEvents: x.matched }));
+}
+
+function buildQuestions(cands, answered) {
+  const need = new Set();
+  cands.forEach(c => (c.need || []).forEach(k => need.add(k)));
+  return QUESTION_ORDER.filter(k => need.has(k) && !answered.has(k)).map(k => ({ key:k, ...QUESTIONS[k] }));
+}
+
+function buildRoadmap(cands) {
+  const phases = [1, 2, 3].map(p => ({ phase:p, ...PHASES[p], items: cands.filter(c => c.phase === p) })).filter(p => p.items.length);
+  const docs = [];
+  cands.filter(c => c.phase <= 2).forEach(c => (c.docs || []).forEach(d => { if (!docs.includes(d)) docs.push(d); }));
+  const contacts = [];
+  cands.filter(c => c.phase <= 2).forEach(c => { if (c.contact && !contacts.includes(c.contact)) contacts.push(c.contact); });
+  return { phases, docs, contacts };
+}
+
+function buildLetter(events, roadmap) {
+  const L = [];
+  L.push('안녕하세요. 오늘 상담 내용을 정리해 드립니다.');
+  L.push('');
+  L.push('[파악한 상황] ' + (events.length ? events.map(e => EVENTS[e.id].label).join(', ') : '추가 확인이 필요합니다'));
+  L.push('');
+  L.push('[이렇게 진행해 보세요]');
+  roadmap.phases.forEach((p, i) => {
+    L.push((i + 1) + '단계 · ' + p.title);
+    p.items.forEach(s => L.push('  - ' + s.name + ' → ' + s.how + (s.contact ? ' (' + s.contact + ')' : '')));
+  });
+  if (roadmap.docs.length) { L.push(''); L.push('[한 번에 준비할 서류] ' + roadmap.docs.join(', ')); }
+  L.push('');
+  L.push('[꼭 알아두세요] 이 안내는 참고용이며, 신청 자격과 지원 내용은 담당 공무원이 확인한 뒤 결정됩니다. 궁금한 점은 보건복지상담센터 129로 문의하세요.');
+  return L.join('\n');
+}
+
+function analyze(text, services) {
+  const facts = extractFacts(text);
+  const events = detectEvents(text, facts);
+  const cands = matchServices(events.map(e => e.id), services || SERVICES);
+  const questions = buildQuestions(cands, answeredKeys(facts));
+  const roadmap = buildRoadmap(cands);
+  const letter = buildLetter(events, roadmap);
+  return { facts, events, cands, questions, roadmap, letter };
+}
+
+if (typeof globalThis.__EXPORT__ === 'function') {
+  globalThis.__EXPORT__({ analyze, extractFacts, detectEvents, SERVICES, SCENARIOS, EVENTS });
+}
+
+/* ============================================================
+   2) 화면
+   ============================================================ */
+if (typeof document !== 'undefined') {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  SCENARIOS.forEach(sc => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type = 'button'; b.textContent = sc.label;
+    b.onclick = () => { $('memo').value = sc.text; run(); };
+    $('scn').appendChild(b);
+  });
+
+  function setStep(n) {
+    document.querySelectorAll('#flow li').forEach(li => {
+      const i = +li.dataset.s;
+      li.classList.toggle('done', i < n);
+      li.classList.toggle('on', i === n);
+    });
+  }
+
+  function factPills(f) {
+    const p = [];
+    if (f.age != null) p.push('나이 ' + f.age + '세');
+    if (f.household != null) p.push('가구원 ' + f.household + '명');
+    if (f.childMonths != null) p.push('아이 ' + f.childMonths + '개월');
+    if (f.housingType) p.push('거주 형태 ' + f.housingType);
+    return p.length ? p.map(x => '<span class="pill fact">' + esc(x) + '</span>').join('') : '<span class="empty">상담 내용에서 확인된 가구 정보가 아직 없어요.</span>';
+  }
+
+  function svcCard(s, answered) {
+    const miss = (s.need || []).filter(k => !answered.has(k)).map(k => ({ income:'소득·재산', household:'가구원 수', insurance:'고용보험 이력', housing:'거주 형태', childAge:'아이 나이', elderAge:'나이(65세 이상)', ltc:'장기요양 등급', disabled:'장애 등록', discharge:'퇴원·돌봄 상황' }[k] || k));
+    const evs = (s.matchedEvents || []).map(e => '<span class="ev">#' + esc(EVENTS[e].label) + '</span>').join('');
+    return '<article class="svc">' +
+      '<div class="hd"><span class="badge b-' + 'p' + s.phase + '">' + (s.phase === 1 ? '먼저' : s.phase === 2 ? '이어서' : '보완') + '</span>' +
+      '<h3>' + esc(s.name) + '</h3><span class="badge b-src">' + esc(s.source) + '</span>' +
+      (s.verified ? '<span class="badge b-ok">복지로 원문 확인</span>' : '') + '</div>' +
+      '<div>' + evs + '</div>' +
+      '<dl><dt>지원대상</dt><dd>' + esc(s.target) + '</dd>' +
+      '<dt>선정기준</dt><dd>' + esc(s.criteria) + '</dd>' +
+      '<dt>지원내용</dt><dd>' + esc(s.benefit) + '</dd>' +
+      '<dt>신청방법</dt><dd>' + esc(s.how) + (s.contact ? ' · ' + esc(s.contact) : '') + '</dd>' +
+      (miss.length ? '<dt>확인 필요</dt><dd><span class="badge b-warn">' + esc(miss.join(' · ')) + '</span></dd>' : '') +
+      (s.url ? '<dt>원문</dt><dd><a href="' + esc(s.url) + '" target="_blank" rel="noopener">복지로 상세 보기</a></dd>' : '') +
+      '</dl></article>';
+  }
+
+  function render(r) {
+    const answered = answeredKeys(r.facts);
+    $('events').innerHTML = r.events.length
+      ? r.events.map(e => '<span class="pill">' + esc(EVENTS[e.id].label) + ' <small>“' + esc(e.hits[0]) + '”</small></span>').join('')
+      : '<span class="empty">인식된 사건이 없어요. 상담 내용을 조금 더 구체적으로 적어 보세요.</span>';
+    $('facts').innerHTML = factPills(r.facts);
+
+    $('qs').innerHTML = r.questions.length
+      ? r.questions.map((q, i) => '<label class="q"><input type="checkbox" id="q' + i + '"><div><b>' + esc(q.q) + '</b><span>왜 필요한가요? ' + esc(q.why) + '</span></div></label>').join('')
+      : '<span class="empty">추가로 확인할 질문이 없어요.</span>';
+
+    $('roadmap').innerHTML = r.roadmap.phases.length
+      ? r.roadmap.phases.map(p => '<div class="ph ' + p.cls + '"><h3>' + esc(p.title) + '</h3><ul>' +
+          p.items.map(s => '<li><b>' + esc(s.name) + '</b> <small>→ ' + esc(s.how) + '</small></li>').join('') + '</ul></div>').join('')
+      : '<span class="empty">추천할 제도가 아직 없어요.</span>';
+    $('docs').innerHTML = r.roadmap.docs.length
+      ? '<b>한 번에 준비할 서류</b> · ' + r.roadmap.docs.map(esc).join(', ') + (r.roadmap.contacts.length ? '<br><b>연계 문의처</b> · ' + r.roadmap.contacts.map(esc).join(', ') : '')
+      : '';
+
+    $('svcs').innerHTML = r.cands.map(s => svcCard(s, answered)).join('') || '<span class="empty">해당하는 제도가 없어요.</span>';
+    $('letter').textContent = r.letter;
+    $('copied').textContent = '';
+    $('out').hidden = false;
+  }
+
+  async function serverAnalyze(text) {
+    const res = await fetch('/api/analyze', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ text }) });
+    if (!res.ok) throw new Error('서버 응답 오류 (' + res.status + ')');
+    const data = await res.json();
+    const cands = data.services.map(s => ({ ...s, matchedEvents: s.matchedEvents || data.events.map(e => e.id) }));
+    const questions = buildQuestions(cands, answeredKeys(data.facts || {}));
+    const roadmap = buildRoadmap(cands);
+    return { facts: data.facts || {}, events: data.events, cands, questions, roadmap, letter: buildLetter(data.events, roadmap) };
+  }
+
+  let busy = false;
+  async function run() {
+    const text = $('memo').value.trim();
+    const err = $('err'); err.hidden = true;
+    if (!text) { err.textContent = '상담 내용을 입력하거나 위의 예시를 눌러 주세요.'; err.hidden = false; return; }
+    if (busy) return; busy = true; $('go').disabled = true; $('out').hidden = true;
+    try {
+      for (let i = 0; i < 4; i++) { setStep(i); await sleep(380); }
+      let result;
+      if ($('mode').value === 'server') {
+        try { result = await serverAnalyze(text); }
+        catch (e) {
+          err.textContent = '서버에 연결하지 못해 데모 방식으로 분석했어요. (' + e.message + ')';
+          err.hidden = false; result = analyze(text);
+        }
+      } else { result = analyze(text); }
+      setStep(4);
+      render(result);
+      $('out').scrollIntoView({ behavior:'smooth', block:'start' });
+    } finally { busy = false; $('go').disabled = false; }
+  }
+  $('go').onclick = run;
+
+  $('copy').onclick = async () => {
+    try { await navigator.clipboard.writeText($('letter').textContent); $('copied').textContent = '복사했어요.'; }
+    catch (e) { $('copied').textContent = '복사하지 못했어요. 안내문을 직접 선택해 복사해 주세요.'; }
+  };
+}
+</script>
+</body>
+</html>

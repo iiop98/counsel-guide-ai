@@ -1,0 +1,8 @@
+# 인증키·비밀 값은 절대 올리지 않는다
+.env
+.env.*
+!.env.example
+
+node_modules/
+.vercel/
+.DS_Store
